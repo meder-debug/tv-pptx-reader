@@ -1,7 +1,11 @@
 # PPTX Reader for Android projectors
 
 Shows PowerPoint (`.pptx`, `.ppsx`) and PDF files full screen on an Android projector or TV
-box (built for the Magcubic HY320 Mini, Android 11), driven by the projector's remote.
+box, driven by the projector's remote. It was made for a teacher presenting lessons on a Magcubic
+HY320 Mini (Android 11) and works on Android 7 and newer.
+
+**[Download the latest APK](https://github.com/meder-debug/tv-pptx-reader/releases/latest)**, then
+follow [Installing on the projector](#installing-on-the-projector).
 
 - **Opens .pptx directly.** It has its own slide renderer: themes, masters and layouts, text with
   bullets, numbering and autofit, all 187 PowerPoint shapes, pictures, gradients, textures, groups,
@@ -53,5 +57,11 @@ Needs JDK 17 and the Android SDK (platform 36).
 Debug builds include `RenderDumpActivity`, which renders every deck in
 `Android/data/com.tvpptx.reader/files/decks` to PNGs in `.../files/dump`. It is handy for checking rendering.
 
-The shape geometry in `app/src/main/assets/presets.txt` is converted from the ECMA-376
-`presetShapeDefinitions.xml`.
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party parts:
+- [ZXing](https://github.com/zxing/zxing) (QR codes), Apache License 2.0.
+- `app/src/main/assets/presets.txt`, the shape geometry, converted from the ECMA-376 / ISO/IEC 29500
+  `presetShapeDefinitions.xml`.
+
+PowerPoint is a trademark of Microsoft. This project is not affiliated with Microsoft.
