@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PPTX Reader</string>
+
+    <color name="bg">#0F1419</color>
+    <color name="panel">#18212B</color>
+    <color name="panel_hi">#223040</color>
+    <color name="accent">#F26B3A</color>
+    <color name="accent_dark">#C9512A</color>
+    <color name="text">#F2F4F7</color>
+    <color name="text_dim">#9AA5B1</color>
+
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorPrimary">@color/panel</item>
+        <item name="android:colorPrimaryDark">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_dim</item>
+    </style>
+
+    <style name="AppTheme.Viewer">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+</resources>

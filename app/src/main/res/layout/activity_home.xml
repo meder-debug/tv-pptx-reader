@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingStart="40dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="40dp"
+    android:paddingBottom="28dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.55"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/text"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="PowerPoint and PDF on the big screen"
+            android:textColor="@color/text_dim"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/browse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/btn_bg"
+            android:minHeight="0dp"
+            android:paddingStart="24dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="14dp"
+            android:stateListAnimator="@null"
+            android:text="Browse USB &amp; storage"
+            android:textAllCaps="false"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="6dp"
+            android:text="RECENT &amp; RECEIVED"
+            android:letterSpacing="0.08"
+            android:textColor="@color/text_dim"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ListView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@null"
+                android:dividerHeight="4dp"
+                android:drawSelectorOnTop="false"
+                android:listSelector="@drawable/list_selector"
+                android:scrollbarStyle="outsideOverlay" />
+
+            <TextView
+                android:id="@+id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingExtra="4dp"
+                android:text="No presentations yet.\n\nPlug in a USB stick and choose Browse, or send a file from your phone using the code on the right."
+                android:textColor="@color/text_dim"
+                android:textSize="17sp"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="32dp"
+        android:layout_weight="1"
+        android:background="@drawable/panel_bg"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send from your phone"
+            android:textColor="@color/text"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="14dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/qr"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:background="@drawable/qr_bg"
+                android:padding="10dp"
+                android:scaleType="fitCenter" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="@color/accent"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:text="Phone on the same Wi-Fi: scan the code, pick a .pptx or .pdf and it opens here. The page also works as a clicker."
+            android:textColor="@color/text_dim"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/text"
+            android:textSize="15sp" />
+    </LinearLayout>
+</LinearLayout>

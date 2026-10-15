@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="40dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="40dp"
+    android:paddingBottom="20dp">
+
+    <TextView
+        android:id="@+id/heading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="start"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/subheading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="14dp"
+        android:text="Showing folders, .pptx, .ppsx and .pdf files. BACK goes up a folder."
+        android:textColor="@color/text_dim"
+        android:textSize="14sp" />
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@null"
+        android:dividerHeight="4dp"
+        android:listSelector="@drawable/list_selector" />
+</LinearLayout>

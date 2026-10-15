@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0F1419">
+<title>Projector</title>
+<style>
+  :root { --bg:#0F1419; --panel:#18212B; --hi:#223040; --accent:#F26B3A; --text:#F2F4F7; --dim:#9AA5B1; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:20px 16px 32px; }
+  h1 { font-size:22px; margin:4px 0 2px; }
+  p.sub { color:var(--dim); margin:0 0 18px; }
+  .card { background:var(--panel); border-radius:16px; padding:18px; margin-bottom:16px; }
+  h2 { font-size:15px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); margin:0 0 12px; }
+  label.pick { display:block; text-align:center; background:var(--accent); color:#fff; font-weight:600; font-size:18px;
+               padding:16px; border-radius:12px; cursor:pointer; }
+  input[type=file] { display:none; }
+  .bar { height:10px; background:var(--hi); border-radius:6px; overflow:hidden; margin-top:14px; display:none; }
+  .bar > div { height:100%; width:0; background:var(--accent); transition:width .2s; }
+  #msg { margin-top:12px; min-height:1.4em; color:var(--dim); word-break:break-word; }
+  #msg.ok { color:#7EE2A8; } #msg.err { color:#FF8A80; }
+  .now { color:var(--dim); margin-bottom:12px; min-height:1.4em; word-break:break-word; }
+  .now b { color:var(--text); }
+  .pad { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .pad button { border:0; border-radius:14px; background:var(--hi); color:var(--text); font-size:22px; font-weight:600;
+                padding:28px 0; touch-action:manipulation; }
+  .pad button.big { background:var(--accent); color:#fff; }
+  .pad button:active { filter:brightness(1.25); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .row2 button { border:0; border-radius:12px; background:var(--hi); color:var(--dim); font-size:15px; padding:12px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Projector</h1>
+  <p class="sub">Send a presentation to the big screen, then use this page as a clicker.</p>
+
+  <section class="card">
+    <h2>Send a file</h2>
+    <label class="pick" for="file">Choose .pptx or .pdf</label>
+    <input id="file" type="file" accept=".pptx,.ppsx,.pptm,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+    <div class="bar" id="bar"><div></div></div>
+    <div id="msg"></div>
+  </section>
+
+  <section class="card">
+    <h2>Remote</h2>
+    <div class="now" id="now">Nothing on screen yet.</div>
+    <div class="pad">
+      <button onclick="cmd('prev')" aria-label="Previous slide">◀ Back</button>
+      <button class="big" onclick="cmd('next')" aria-label="Next slide">Next ▶</button>
+    </div>
+    <div class="row2">
+      <button onclick="cmd('first')">First slide</button>
+      <button onclick="cmd('last')">Last slide</button>
+    </div>
+  </section>
+</main>
+<script>
+  var input = document.getElementById('file'), bar = document.getElementById('bar'),
+      fillEl = bar.firstElementChild, msg = document.getElementById('msg'), now = document.getElementById('now');
+
+  function say(text, cls) { msg.textContent = text; msg.className = cls || ''; }
+
+  input.addEventListener('change', function () {
+    var f = input.files[0];
+    if (!f) return;
+    if (!/\.(pptx|ppsx|pptm|pdf)$/i.test(f.name)) { say('Please pick a .pptx or .pdf file.', 'err'); return; }
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload?name=' + encodeURIComponent(f.name));
+    bar.style.display = 'block'; fillEl.style.width = '0';
+    say('Sending ' + f.name + '…');
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable) fillEl.style.width = Math.round(e.loaded / e.total * 100) + '%';
+    };
+    xhr.onload = function () {
+      var r = {};
+      try { r = JSON.parse(xhr.responseText); } catch (e) {}
+      if (xhr.status === 200 && r.ok) { fillEl.style.width = '100%'; say('Sent! It is opening on the projector.', 'ok'); setTimeout(poll, 1500); }
+      else say(r.error || ('Upload failed (' + xhr.status + ')'), 'err');
+      input.value = '';
+    };
+    xhr.onerror = function () { say('Connection lost. Is the app still open on the projector?', 'err'); input.value = ''; };
+    xhr.send(f);
+  });
+
+  function show(s) {
+    if (s && s.presenting) {
+      now.innerHTML = '';
+      var b = document.createElement('b'); b.textContent = s.title;
+      now.appendChild(b);
+      now.appendChild(document.createTextNode('  —  slide ' + s.slide + ' of ' + s.total));
+    } else {
+      now.textContent = 'Nothing on screen yet. Open a presentation first.';
+    }
+  }
+
+  function cmd(c) {
+    if (navigator.vibrate) navigator.vibrate(15);
+    fetch('/cmd?c=' + c, { method: 'POST' }).then(function (r) { return r.json(); }).then(show).catch(function () {});
+  }
+
+  function poll() {
+    fetch('/state').then(function (r) { return r.json(); }).then(show).catch(function () {});
+  }
+  poll();
+  setInterval(poll, 3000);
+</script>
+</body>
+</html>
