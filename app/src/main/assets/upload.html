@@ -30,6 +30,7 @@
   .pad button:active { filter:brightness(1.25); }
   .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
   .row2 button { border:0; border-radius:12px; background:var(--hi); color:var(--dim); font-size:15px; padding:12px 0; }
+  #pp { display:none; width:100%; margin-top:12px; border:0; border-radius:12px; background:var(--hi); color:var(--text); font-size:17px; padding:14px 0; }
 </style>
 </head>
 <body>
@@ -56,6 +57,7 @@
       <button onclick="cmd('first')">First slide</button>
       <button onclick="cmd('last')">Last slide</button>
     </div>
+    <button id="pp" onclick="cmd('playpause')">⏯  Pause / play video</button>
   </section>
 </main>
 <script>
@@ -95,6 +97,7 @@
     } else {
       now.textContent = 'Nothing on screen yet. Open a presentation first.';
     }
+    document.getElementById('pp').style.display = s && s.media ? 'block' : 'none';
   }
 
   function cmd(c) {

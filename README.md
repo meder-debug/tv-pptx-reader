@@ -11,20 +11,32 @@ follow [Installing on the projector](#installing-on-the-projector).
   bullets, numbering and autofit, all 187 PowerPoint shapes, pictures, gradients, textures, groups,
   tables with table styles, charts (bar/column, line, area, scatter, pie, doughnut) and SmartArt.
   Hidden slides are skipped. PDFs use Android's built-in PDF renderer.
+- **Click animations.** Lines, pictures and shapes set to appear (or disappear) *On Click* in
+  PowerPoint come in one press of OK at a time, so a slide can reveal a question first and its
+  answer next. Effects a click on a shape would trigger come as extra presses at the end.
+- **Zoom.** ▲ magnifies the slide; the arrows move around it. Zoomed views are redrawn sharp,
+  for PDFs too.
+- **Video and sound** embedded in a .pptx play when their click comes (or by themselves, if set to
+  start automatically). The volume keys set their volume.
 - **Gets files three ways:** a USB stick or the projector's storage (*Browse USB & storage*);
   a phone on the same Wi-Fi (scan the QR code on the home screen, pick a file, and it opens
   automatically); or *Open with* from the projector's own file manager.
-- **Phone clicker:** the page the QR code opens also has big *Back / Next* buttons.
+- **Phone clicker:** the page the QR code opens also has big *Back / Next* buttons, and a
+  *Pause / play* button while a video plays.
 
 ## Remote control
 
 | Key | Action |
 | --- | --- |
-| ▶ / ▼ / OK | next slide |
-| ◀ / ▲ | previous slide |
+| ▶ / ▼ / OK | next click of the slide's animations, then the next slide |
+| ◀ | take back the last click, then the previous slide |
+| ▲ | zoom in (2×) |
 | hold OK (or MENU) | grid of all slides; pick one with the arrows + OK |
 | number keys | jump to that slide |
 | BACK | close the grid, then leave the presentation |
+
+While zoomed in, the arrows move around the slide, OK zooms in further (up to 4×), and BACK zooms
+out a step; at normal size the keys work as above again.
 
 On the home screen, hold OK on a file to remove it from the list (files sent from a phone are deleted).
 
@@ -38,10 +50,13 @@ On the home screen, hold OK on a file to remove it from the list (files sent fro
 
 ## Limits
 
-Animations and slide transitions are not played (each slide appears complete). Fonts are mapped to
-the projector's own fonts, so line breaks can differ slightly from PowerPoint. Video, audio,
-equations, and EMF/WMF pictures are not shown. Old binary `.ppt` files are not supported. For
-pixel-perfect output, export the deck to PDF and open the PDF.
+Animations decide what is visible at each click, but their motion is not played: entrances and
+exits fade in and out, emphasis effects and motion paths are skipped, and charts and SmartArt
+appear whole instead of piece by piece. Slide transitions are not played. Video and sound linked
+from outside the .pptx can't play, nor can formats the device has no decoder for (such as WMV).
+Fonts are mapped to the projector's own fonts, so line breaks can differ slightly from PowerPoint.
+Equations and EMF/WMF pictures are not shown. Old binary `.ppt` files are not supported. For
+pixel-perfect output, export the deck to PDF and open the PDF (PDFs have no animations).
 
 The phone upload page is only reachable on your local network while the app is open. Anyone on
 that network can send a file or change slides.
@@ -56,6 +71,8 @@ Needs JDK 17 and the Android SDK (platform 36).
 
 Debug builds include `RenderDumpActivity`, which renders every deck in
 `Android/data/com.tvpptx.reader/files/decks` to PNGs in `.../files/dump`. It is handy for checking rendering.
+Extras: `--ez steps true` also renders every click of each slide's animations, and `--ef zoom 2`
+renders the middle of each slide magnified.
 
 ## License
 

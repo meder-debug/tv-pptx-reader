@@ -15,8 +15,8 @@ android {
         // Targeting 29 keeps legacy storage access, so the app can read .pptx files straight
         // from USB sticks on Android 10-11 projectors. It is sideloaded, never published.
         targetSdk = 29
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     buildTypes {

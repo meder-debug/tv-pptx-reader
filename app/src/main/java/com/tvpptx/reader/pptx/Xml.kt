@@ -37,6 +37,19 @@ fun Element.child(name: String): Element? {
 
 fun Element.children(name: String): List<Element> = kids().filter { it.tag == name }
 
+/** Every element below this one named [name], in document order. */
+fun Element.descendants(name: String): List<Element> {
+    val out = ArrayList<Element>()
+    fun walk(el: Element) {
+        for (c in el.kids()) {
+            if (c.tag == name) out.add(c)
+            walk(c)
+        }
+    }
+    walk(this)
+    return out
+}
+
 /** Follows a chain of child names, e.g. el.path("cSld", "spTree"). */
 fun Element.path(vararg names: String): Element? {
     var cur: Element? = this

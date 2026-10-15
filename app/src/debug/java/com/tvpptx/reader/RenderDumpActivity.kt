@@ -2,6 +2,7 @@ package com.tvpptx.reader
 
 import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.RectF
 import android.os.Bundle
 import android.os.SystemClock
 import android.widget.TextView
@@ -28,11 +29,27 @@ class RenderDumpActivity : Activity() {
                         log.append("${f.name}: ${doc.pageCount} pages, open ${SystemClock.elapsedRealtime() - t0} ms\n")
                         for (i in 0 until minOf(doc.pageCount, 60)) {
                             val t1 = SystemClock.elapsedRealtime()
-                            val bmp = doc.render(i, width, (width / doc.aspect).toInt())
-                            File(out, "${f.nameWithoutExtension}-${"%02d".format(i + 1)}.png").outputStream().use {
+                            val height = (width / doc.aspect).toInt()
+                            val name = "${f.nameWithoutExtension}-${"%02d".format(i + 1)}"
+                            fun save(bmp: Bitmap, suffix: String) = File(out, "$name$suffix.png").outputStream().use {
                                 bmp.compress(Bitmap.CompressFormat.PNG, 100, it)
                             }
-                            log.append("  page ${i + 1}: ${SystemClock.elapsedRealtime() - t1} ms\n")
+                            save(doc.render(i, width, height), "")
+                            log.append("  page ${i + 1}: ${SystemClock.elapsedRealtime() - t1} ms")
+                            val info = doc.info(i)
+                            if (info.steps > 0 || info.media.isNotEmpty()) {
+                                log.append(", ${info.steps} steps, media ${info.media.map { "${it.spid}:${it.target}${if (it.video) " video" else ""} vol=${it.volume} loop=${it.loop} ${it.rect}" }}, cues ${info.cues.map { "${it.step}:${it.spid}:${if (it.play) "play" else "stop"}" }}")
+                            }
+                            log.append("\n")
+                            // --ez steps true: every click of the build; --ef zoom 2: the centre magnified.
+                            if (intent.getBooleanExtra("steps", false)) {
+                                for (s in 0..info.steps) save(doc.render(i, width, height, s), "-s$s")
+                            }
+                            val zoom = intent.getFloatExtra("zoom", 0f)
+                            if (zoom > 1f) {
+                                val h = 0.5f / zoom
+                                save(doc.render(i, width, height, region = RectF(0.5f - h, 0.5f - h, 0.5f + h, 0.5f + h)), "-z")
+                            }
                         }
                     }
                 } catch (t: Throwable) {

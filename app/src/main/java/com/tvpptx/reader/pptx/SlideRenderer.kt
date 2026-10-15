@@ -33,9 +33,29 @@ class Xf(val ox: Double, val oy: Double, val sx: Double, val sy: Double) {
     }
 }
 
+/** The transform for a group's children, from the group's <a:xfrm> (off/ext and chOff/chExt). */
+fun groupChildXf(xfrm: Element?, xf: Xf): Xf {
+    if (xfrm == null) return xf
+    val off = xfrm.child("off"); val ext = xfrm.child("ext")
+    val chOff = xfrm.child("chOff"); val chExt = xfrm.child("chExt")
+    val ox = off?.long("x")?.toDouble() ?: 0.0
+    val oy = off?.long("y")?.toDouble() ?: 0.0
+    val cx = ext?.long("cx")?.toDouble() ?: 0.0
+    val cy = ext?.long("cy")?.toDouble() ?: 0.0
+    val chx = chOff?.long("x")?.toDouble() ?: ox
+    val chy = chOff?.long("y")?.toDouble() ?: oy
+    val chcx = chExt?.long("cx")?.toDouble()?.takeIf { it > 0 } ?: cx
+    val chcy = chExt?.long("cy")?.toDouble()?.takeIf { it > 0 } ?: cy
+    val sx = if (chcx > 0) cx / chcx else 1.0
+    val sy = if (chcy > 0) cy / chcy else 1.0
+    // child -> group parent space: X = ox + (x - chx) * sx, then parent -> slide via xf
+    return Xf(xf.x(ox - chx * sx), xf.y(oy - chy * sy), xf.sx * sx, xf.sy * sy)
+}
+
 /** Shared state for drawing one slide. */
 class DrawCtx(
-    val slide: SlidePart, val colors: ColorCtx, val k: Float, val pres: Presentation, val renderer: SlideRenderer
+    val slide: SlidePart, val colors: ColorCtx, val k: Float, val pres: Presentation, val renderer: SlideRenderer,
+    val show: ShowState = ShowState.ALL
 ) {
     val env = TextEnv(colors, k, slide.number)
     var background: Fill? = null
@@ -45,14 +65,21 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
     /** Pixels per EMU for the slide being drawn. */
     private var kNow = 1f
 
-    fun render(index: Int, width: Int, height: Int): Bitmap {
+    /**
+     * Draws slide [index] into a [width] x [height] bitmap, with what [show] hides left out. A
+     * [region] (in slide fractions) draws just that part of the slide, magnified to fill the bitmap.
+     */
+    fun render(index: Int, width: Int, height: Int, show: ShowState = ShowState.ALL, region: RectF? = null): Bitmap {
         val slide = pres.slide(index)
         val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
-        val k = min(width.toFloat() / pres.slideW, height.toFloat() / pres.slideH)
-        val ctx = DrawCtx(slide, ColorCtx(slide.master.theme, slide.clrMap), k, pres, this)
+        val rw = region?.width()?.takeIf { it > 0f } ?: 1f
+        val rh = region?.height()?.takeIf { it > 0f } ?: 1f
+        val k = min(width / (pres.slideW * rw), height / (pres.slideH * rh))
+        if (region != null) canvas.translate(-region.left * pres.slideW * k, -region.top * pres.slideH * k)
+        val ctx = DrawCtx(slide, ColorCtx(slide.master.theme, slide.clrMap), k, pres, this, show)
         kNow = k
-        drawBackground(canvas, ctx, width.toFloat(), height.toFloat())
+        drawBackground(canvas, ctx, pres.slideW * k, pres.slideH * k)
         val master = slide.master
         val layout = slide.layout
         if (slide.showMasterShapes && layout.showMasterShapes) drawTree(canvas, master.shapes, master, ctx, Xf.IDENTITY, null)
@@ -87,6 +114,7 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
     }
 
     private fun drawElement(canvas: Canvas, el: Element, part: Part, ctx: DrawCtx, xf: Xf, groupFill: Fill?) {
+        if (part === ctx.slide && ctx.show.hidesShape(idOf(el))) return // not revealed yet, or already exited
         when (el.tag) {
             "sp", "cxnSp" -> drawShape(canvas, el, part, ctx, xf, groupFill)
             "pic" -> drawPicture(canvas, el, part, ctx, xf)
@@ -101,6 +129,9 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
 
     private fun isHidden(el: Element) =
         el.kids().firstOrNull { it.tag.startsWith("nv") }?.child("cNvPr")?.bool("hidden") == true
+
+    /** The shape id that animations target (p:spTgt spid). */
+    private fun idOf(el: Element): String? = el.kids().firstOrNull { it.tag.startsWith("nv") }?.child("cNvPr")?.attr("id")
 
     /** Layout and master shapes a slide placeholder inherits from, most specific first. */
     private fun inherited(part: Part, ph: Element?): List<Pair<Element, Part>> {
@@ -157,17 +188,20 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
         val w = r.width()
         val h = r.height()
         val geom = buildGeometry(geomSpPr, w, h)
+        val id = if (part === ctx.slide) idOf(el) else null
         withTransform(canvas, xfrm, r, flipContent = false) {
-            canvas.save()
-            val fh = xfrm?.bool("flipH") == true
-            val fv = xfrm?.bool("flipV") == true
-            if (fh || fv) canvas.scale(if (fh) -1f else 1f, if (fv) -1f else 1f, r.centerX(), r.centerY())
-            canvas.translate(r.left, r.top)
-            if (fill != null && fill !== Fill.None) {
-                for (gp in geom.paths) if (gp.fill != "none") paintFill(canvas, gp.path, fill, w, h, gp.fill)
+            if (!ctx.show.hidesFill(id)) {
+                canvas.save()
+                val fh = xfrm?.bool("flipH") == true
+                val fv = xfrm?.bool("flipV") == true
+                if (fh || fv) canvas.scale(if (fh) -1f else 1f, if (fv) -1f else 1f, r.centerX(), r.centerY())
+                canvas.translate(r.left, r.top)
+                if (fill != null && fill !== Fill.None) {
+                    for (gp in geom.paths) if (gp.fill != "none") paintFill(canvas, gp.path, fill, w, h, gp.fill)
+                }
+                if (stroke != null) drawStroke(canvas, geom, stroke, ctx.k)
+                canvas.restore()
             }
-            if (stroke != null) drawStroke(canvas, geom, stroke, ctx.k)
-            canvas.restore()
 
             val txBody = el.child("txBody")
             if (txBody != null) {
@@ -177,7 +211,7 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
                     ?: r
                 val bodyPrs = listOfNotNull(txBody.child("bodyPr")) +
                     chain.drop(1).mapNotNull { it.first.child("txBody")?.child("bodyPr") }
-                TextRenderer.draw(canvas, txBody, box, bodyPrs, textChain(el, ph, chain, style, ctx), ctx.env)
+                TextRenderer.draw(canvas, txBody, box, bodyPrs, textChain(el, ph, chain, style, ctx), ctx.env, ctx.show.hiddenParas(id))
             }
         }
     }
@@ -225,23 +259,7 @@ class SlideRenderer(private val pres: Presentation, private val images: ImageCac
         val grpSpPr = el.child("grpSpPr")
         val xfrm = grpSpPr?.child("xfrm")
         val r = rectOf(xfrm, xf, ctx.k)
-        var childXf = xf
-        if (xfrm != null) {
-            val off = xfrm.child("off"); val ext = xfrm.child("ext")
-            val chOff = xfrm.child("chOff"); val chExt = xfrm.child("chExt")
-            val ox = off?.long("x")?.toDouble() ?: 0.0
-            val oy = off?.long("y")?.toDouble() ?: 0.0
-            val cx = ext?.long("cx")?.toDouble() ?: 0.0
-            val cy = ext?.long("cy")?.toDouble() ?: 0.0
-            val chx = chOff?.long("x")?.toDouble() ?: ox
-            val chy = chOff?.long("y")?.toDouble() ?: oy
-            val chcx = chExt?.long("cx")?.toDouble()?.takeIf { it > 0 } ?: cx
-            val chcy = chExt?.long("cy")?.toDouble()?.takeIf { it > 0 } ?: cy
-            val sx = if (chcx > 0) cx / chcx else 1.0
-            val sy = if (chcy > 0) cy / chcy else 1.0
-            // child -> group parent space: X = ox + (x - chx) * sx, then parent -> slide via xf
-            childXf = Xf(xf.x(ox - chx * sx), xf.y(oy - chy * sy), xf.sx * sx, xf.sy * sy)
-        }
+        val childXf = groupChildXf(xfrm, xf)
         val fill = parseFill(grpSpPr, ctx.colors, part.rels)?.takeIf { it !== Fill.Group } ?: groupFill
         if (r != null) {
             withTransform(canvas, xfrm, r, flipContent = true) {

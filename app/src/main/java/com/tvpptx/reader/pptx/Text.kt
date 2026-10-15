@@ -100,10 +100,15 @@ private class Laid(val paras: List<ParaLayout>) {
         acc + (if (i > 0) p.before else 0f) + p.layout.height + (if (i < paras.size - 1) p.after else 0f)
     }
 
-    fun draw(canvas: Canvas, left: Float, top: Float) {
+    /** Paragraphs in [hidden] keep their place but aren't drawn, as PowerPoint does before they animate in. */
+    fun draw(canvas: Canvas, left: Float, top: Float, hidden: Set<Int>) {
         var y = top
         paras.forEachIndexed { i, p ->
             if (i > 0) y += p.before
+            if (i in hidden) {
+                y += p.layout.height + p.after
+                return@forEachIndexed
+            }
             canvas.save()
             canvas.translate(left + p.x, y)
             p.layout.draw(canvas)
@@ -121,9 +126,13 @@ private class Laid(val paras: List<ParaLayout>) {
 object TextRenderer {
     /**
      * Draws [txBody] into [box] (shape bounds in px). [bodyPrs] are bodyPr elements, most
-     * specific first (slide, layout placeholder, master placeholder).
+     * specific first (slide, layout placeholder, master placeholder). Paragraph indices in [hidden]
+     * are laid out but not drawn.
      */
-    fun draw(canvas: Canvas, txBody: Element, box: RectF, bodyPrs: List<Element>, chain: TextChain, env: TextEnv) {
+    fun draw(
+        canvas: Canvas, txBody: Element, box: RectF, bodyPrs: List<Element>, chain: TextChain, env: TextEnv,
+        hidden: Set<Int> = emptySet()
+    ) {
         val paras = txBody.children("p")
         val hasText = paras.any { p ->
             p.kids().any { (it.tag == "r" || it.tag == "fld") && !it.child("t")?.textContent.isNullOrEmpty() }
@@ -165,7 +174,7 @@ object TextRenderer {
             "b" -> inner.bottom - laid.height
             else -> inner.top
         }
-        laid.draw(canvas, inner.left, top)
+        laid.draw(canvas, inner.left, top, hidden)
         canvas.restore()
     }
 

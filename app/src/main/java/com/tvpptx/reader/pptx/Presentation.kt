@@ -74,6 +74,19 @@ class PptxPackage(file: File) : Closeable {
     override fun close() = zip.close()
 
     companion object {
+        /**
+         * Copies part [path] of [file] to [out], streaming, so a large video never sits in memory.
+         * Opens its own zip, so it can run beside rendering. Returns false if the part isn't there.
+         */
+        fun extract(file: File, path: String, out: File): Boolean = ZipFile(file).use { zip ->
+            val e = zip.getEntry(path) ?: zip.entries().asSequence().firstOrNull { it.name.equals(path, ignoreCase = true) }
+                ?: return false
+            if (out.isFile && e.size >= 0 && out.length() == e.size) return true
+            val tmp = File(out.path + ".part")
+            zip.getInputStream(e).use { input -> tmp.outputStream().use { input.copyTo(it, 64 * 1024) } }
+            tmp.renameTo(out)
+        }
+
         fun resolve(base: String, target: String): String {
             val t = if ('%' in target) try {
                 URLDecoder.decode(target.replace("+", "%2B"), "UTF-8")
