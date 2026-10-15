@@ -1,8 +1,8 @@
 # PPTX Reader for Android projectors
 
-Shows PowerPoint (`.pptx`, `.ppsx`) and PDF files full screen on an Android projector or TV
-box, driven by the projector's remote. It was made for a teacher presenting lessons on a Magcubic
-HY320 Mini (Android 11) and works on Android 7 and newer.
+PPTX Reader is an Android app for presenting PowerPoint (`.pptx`, `.ppsx`) and PDF files full
+screen on projectors, TVs and TV boxes, controlled with the device's remote. It runs on Android 7
+and newer.
 
 **[Download the latest APK](https://github.com/meder-debug/tv-pptx-reader/releases/latest)**, then
 follow [Installing on the projector](#installing-on-the-projector).
